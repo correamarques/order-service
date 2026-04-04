@@ -4,7 +4,7 @@ using OrderService.Infrastructure.Auth;
 namespace OrderService.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("[controller]")]
 public class AuthController(IJwtTokenGenerator tokenGenerator, ILogger<AuthController> logger) : ControllerBase
 {
     private readonly IJwtTokenGenerator _tokenGenerator = tokenGenerator;

@@ -11,7 +11,7 @@ namespace OrderService.Api.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route("[controller]")]
 public class OrdersController(IMediator mediator, ILogger<OrdersController> logger) : ControllerBase
 {
     private readonly IMediator _mediator = mediator;
