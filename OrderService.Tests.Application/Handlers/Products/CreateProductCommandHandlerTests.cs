@@ -11,11 +11,11 @@ namespace OrderService.Tests.Application.Handlers.Products
 {
     public class CreateProductCommandHandlerTests
     {
-        private static Mock<IValidator<CreateProductCommand>> BuildValidatorMock()
+        private static Mock<IValidator<ProductCommands>> BuildValidatorMock()
         {
-            var validator = new Mock<IValidator<CreateProductCommand>>();
+            var validator = new Mock<IValidator<ProductCommands>>();
             validator
-                .Setup(v => v.ValidateAsync(It.IsAny<ValidationContext<CreateProductCommand>>(), It.IsAny<CancellationToken>()))
+                .Setup(v => v.ValidateAsync(It.IsAny<ValidationContext<ProductCommands>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ValidationResult());
             return validator;
         }
@@ -33,7 +33,7 @@ namespace OrderService.Tests.Application.Handlers.Products
                 .ReturnsAsync(false);
             unitOfWork.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
-            var command = new CreateProductCommand(new CreateProductRequest
+            var command = new ProductCommands(new CreateProductRequest
             {
                 Name = "Widget",
                 UnitPrice = 49.99m,
@@ -65,7 +65,7 @@ namespace OrderService.Tests.Application.Handlers.Products
             unitOfWork.SetupGet(x => x.Products).Returns(products.Object);
             products.Setup(x => x.ExistsByNameAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
-            var command = new CreateProductCommand(new CreateProductRequest
+            var command = new ProductCommands(new CreateProductRequest
             {
                 Name = "  GuiTar  ",
                 UnitPrice = 1209.99m,
@@ -88,10 +88,10 @@ namespace OrderService.Tests.Application.Handlers.Products
         public async Task Handle_WhenValidationFails_ShouldThrowValidationException()
         {
             var unitOfWork = new Mock<IUnitOfWork>();
-            var validator = new InlineValidator<CreateProductCommand>();
+            var validator = new InlineValidator<ProductCommands>();
             validator.RuleFor(x => x.Request.Name).NotEmpty();
 
-            var command = new CreateProductCommand(new CreateProductRequest
+            var command = new ProductCommands(new CreateProductRequest
             {
                 Name = "",
                 UnitPrice = 10m,

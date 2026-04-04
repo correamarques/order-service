@@ -3,7 +3,7 @@ using OrderService.Application.Commands;
 
 namespace OrderService.Application.Validators
 {
-    public class CreateProductCommandValidator : AbstractValidator<CreateProductCommand>
+    public class CreateProductCommandValidator : AbstractValidator<ProductCommands>
     {
         public CreateProductCommandValidator()
         {

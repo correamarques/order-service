@@ -23,7 +23,7 @@ namespace OrderService.Api.Controllers
         {
             try
             {
-                var command = new CreateProductCommand(request);
+                var command = new ProductCommands(request);
                 var result = await _mediator.Send(command, cancellationToken);
                 var response = new Response<ProductDto>(result);
                 return CreatedAtAction(nameof(GetById), new { id = result.Id }, response);

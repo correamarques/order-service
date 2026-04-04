@@ -88,4 +88,48 @@ public class OrdersController(IMediator mediator, ILogger<OrdersController> logg
         }
     }
     #endregion
+
+    #region Actions
+    [HttpPost("{id}/confirm")]
+    public async Task<ActionResult<OrderDto>> ConfirmOrder(Guid id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var command = new ConfirmOrderCommand(id);
+            var result = await _mediator.Send(command, cancellationToken);
+            return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Validation error confirming order {OrderId}", id);
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error confirming order {OrderId}", id);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    [HttpPost("{id}/cancel")]
+    public async Task<ActionResult<OrderDto>> CancelOrder(Guid id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var command = new CancelOrderCommand(id);
+            var result = await _mediator.Send(command, cancellationToken);
+            return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Validation error canceling order {OrderId}", id);
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error canceling order {OrderId}", id);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+    #endregion
 }
