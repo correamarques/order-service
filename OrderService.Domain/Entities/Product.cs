@@ -2,6 +2,8 @@
 {
     public class Product
     {
+        private Product() { }
+
         public Guid Id { get; private set; }
         public string Name { get; private set; } = null!;
         public decimal UnitPrice { get; private set; }
@@ -9,6 +11,27 @@
         public bool IsActive { get; private set; }
         public DateTime CreatedAt { get; private set; }
 
-        private Product() { }
+        public static Product Create(string name, decimal unitPrice, int availableQuantity)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("Product name cannot be empty.", nameof(name));
+
+            if (unitPrice <= 0)
+                throw new ArgumentException("Unit price must be greater than zero.", nameof(unitPrice));
+
+            if (availableQuantity < 0)
+                throw new ArgumentException("Available quantity cannot be negative.", nameof(availableQuantity));
+
+
+            return new Product
+            {
+                Id = Guid.NewGuid(),
+                Name = name,
+                UnitPrice = unitPrice,
+                AvailableQuantity = availableQuantity,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            };
+        }
     }
 }

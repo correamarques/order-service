@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using OrderService.Application.DTOs;
 using OrderService.Application.Queries;
 using OrderService.Application.Wrappers;
-using OrderService.Domain.Entities;
 using OrderService.Domain.Repositories;
 
 namespace OrderService.Application.Handlers.Products
@@ -33,21 +32,11 @@ namespace OrderService.Application.Handlers.Products
 
             return new PaginatedResult<ProductDto>
             {
-                Items = [.. products.Select(MapToDto)],
+                Items = [.. products.Select(p => new ProductDto(p))],
                 Total = total,
                 PageNumber = request.PageNumber,
                 PageSize = request.PageSize
             };
         }
-
-        private static ProductDto MapToDto(Product product) => new()
-        {
-            Id = product.Id,
-            Name = product.Name,
-            UnitPrice = product.UnitPrice,
-            AvailableQuantity = product.AvailableQuantity,
-            IsActive = product.IsActive,
-            CreatedAt = product.CreatedAt
-        };
     }
 }
