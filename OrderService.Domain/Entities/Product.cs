@@ -33,5 +33,24 @@
                 CreatedAt = DateTime.UtcNow
             };
         }
+
+        public void ReserveStock(int quantity)
+        {
+            if (quantity <= 0)
+                throw new DomainException("Quantity must be greater than 0");
+
+            if (quantity > AvailableQuantity)
+                throw new DomainException($"Insufficient stock. Available: {AvailableQuantity}, Requested: {quantity}");
+
+            AvailableQuantity -= quantity;
+        }
+
+        public void ReleaseStock(int quantity)
+        {
+            if (quantity <= 0)
+                throw new DomainException("Quantity must be greater than 0");
+
+            AvailableQuantity += quantity;
+        }
     }
 }

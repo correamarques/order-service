@@ -3,4 +3,8 @@
   <Project Path="OrderService.Application/OrderService.Application.csproj" Id="8930f8e3-ce6f-4cea-a1ad-6a1204f4ac74" />
   <Project Path="OrderService.Domain/OrderService.Domain.csproj" Id="7acf3391-d4e7-4f48-92d2-e37c0c5b6b94" />
   <Project Path="OrderService.Infrastructure/OrderService.Infrastructure.csproj" Id="e58d2316-9fdf-4e73-9203-367538760e69" />
+  <Project Path="OrderService.Tests.Api/OrderService.Tests.Api.csproj" Id="a36d3e56-5702-4137-a7aa-530fc5509954" />
+  <Project Path="OrderService.Tests.Application/OrderService.Tests.Application.csproj" Id="9822ab9c-d08e-45cd-890d-a080663ad6e9" />
+  <Project Path="OrderService.Tests.Domain/OrderService.Tests.Domain.csproj" Id="a4887849-ca2e-400c-9c28-274950811c55" />
+  <Project Path="OrderService.Tests.Infrastructure/OrderService.Tests.Infrastructure.csproj" Id="8c7a35c3-7e0a-4b2b-a657-4af0c45cd963" />
 </Solution>

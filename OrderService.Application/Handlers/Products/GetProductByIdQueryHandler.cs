@@ -5,7 +5,7 @@ using OrderService.Domain.Repositories;
 
 namespace OrderService.Application.Handlers.Products
 {
-    public class GetProductByIdHandler(IUnitOfWork unitOfWork) : IRequestHandler<GetProductByIdQuery, ProductDto>
+    public class GetProductByIdQueryHandler(IUnitOfWork unitOfWork) : IRequestHandler<GetProductByIdQuery, ProductDto>
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
