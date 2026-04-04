@@ -25,7 +25,7 @@ namespace OrderService.Tests.Api.Controllers
             var productId = product.Id;
 
             mediator
-                .Setup(x => x.Send(It.IsAny<CreateProductCommand>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.Send(It.IsAny<ProductCommands>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ProductDto(product));
 
             var controller = new ProductsController(mediator.Object, logger.Object);
@@ -50,7 +50,7 @@ namespace OrderService.Tests.Api.Controllers
             var logger = new Mock<ILogger<ProductsController>>();
 
             mediator
-                .Setup(x => x.Send(It.IsAny<CreateProductCommand>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.Send(It.IsAny<ProductCommands>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new ValidationException("UnitPrice must be greater than 0."));
 
             var controller = new ProductsController(mediator.Object, logger.Object);
@@ -72,7 +72,7 @@ namespace OrderService.Tests.Api.Controllers
             var logger = new Mock<ILogger<ProductsController>>();
 
             mediator
-                .Setup(x => x.Send(It.IsAny<CreateProductCommand>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.Send(It.IsAny<ProductCommands>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new Exception("unexpected error"));
 
             var controller = new ProductsController(mediator.Object, logger.Object);

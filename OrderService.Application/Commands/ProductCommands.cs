@@ -4,5 +4,5 @@ using OrderService.Application.Requests;
 
 namespace OrderService.Application.Commands
 {
-    public record CreateProductCommand(CreateProductRequest Request) : IRequest<ProductDto>;
+    public record ProductCommands(CreateProductRequest Request) : IRequest<ProductDto>;
 }

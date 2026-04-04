@@ -9,14 +9,14 @@ namespace OrderService.Application.Handlers.Products
 {
     public class CreateProductCommandHandler(
         IUnitOfWork unitOfWork,
-        IValidator<CreateProductCommand> validator) : IRequestHandler<CreateProductCommand, ProductDto>
+        IValidator<ProductCommands> validator) : IRequestHandler<ProductCommands, ProductDto>
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
-        private readonly IValidator<CreateProductCommand> _validator = validator;
+        private readonly IValidator<ProductCommands> _validator = validator;
 
         private const string DuplicateProductNameError = "A product with the same name already exists.";
 
-        public async Task<ProductDto> Handle(CreateProductCommand command, CancellationToken cancellationToken)
+        public async Task<ProductDto> Handle(ProductCommands command, CancellationToken cancellationToken)
         {
             await _validator.ValidateAndThrowAsync(command, cancellationToken);
 

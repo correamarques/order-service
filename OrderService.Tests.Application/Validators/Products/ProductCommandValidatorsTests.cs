@@ -3,7 +3,7 @@ using OrderService.Application.Commands;
 using OrderService.Application.Requests;
 using OrderService.Application.Validators;
 
-namespace OrderService.Tests.Application.Validators
+namespace OrderService.Tests.Application.Validators.Products
 {
     public class ProductCommandValidatorsTests
     {
@@ -11,7 +11,7 @@ namespace OrderService.Tests.Application.Validators
         public void CreateProductCommandValidator_WithValidPayload_ShouldPass()
         {
             var validator = new CreateProductCommandValidator();
-            var command = new CreateProductCommand(new CreateProductRequest
+            var command = new ProductCommands(new CreateProductRequest
             {
                 Name = "Widget",
                 UnitPrice = 9.99m,
@@ -27,7 +27,7 @@ namespace OrderService.Tests.Application.Validators
         public void CreateProductCommandValidator_WithEmptyName_ShouldFail()
         {
             var validator = new CreateProductCommandValidator();
-            var command = new CreateProductCommand(new CreateProductRequest
+            var command = new ProductCommands(new CreateProductRequest
             {
                 Name = "",
                 UnitPrice = 9.99m,
@@ -44,7 +44,7 @@ namespace OrderService.Tests.Application.Validators
         public void CreateProductCommandValidator_WithNegativePrice_ShouldFail()
         {
             var validator = new CreateProductCommandValidator();
-            var command = new CreateProductCommand(new CreateProductRequest
+            var command = new ProductCommands(new CreateProductRequest
             {
                 Name = "Widget",
                 UnitPrice = -1m,
@@ -61,7 +61,7 @@ namespace OrderService.Tests.Application.Validators
         public void CreateProductCommandValidator_WithZeroPrice_ShouldFail()
         {
             var validator = new CreateProductCommandValidator();
-            var command = new CreateProductCommand(new CreateProductRequest
+            var command = new ProductCommands(new CreateProductRequest
             {
                 Name = "Widget",
                 UnitPrice = 0m,
@@ -77,7 +77,7 @@ namespace OrderService.Tests.Application.Validators
         public void CreateProductCommandValidator_WithNegativeQuantity_ShouldFail()
         {
             var validator = new CreateProductCommandValidator();
-            var command = new CreateProductCommand(new CreateProductRequest
+            var command = new ProductCommands(new CreateProductRequest
             {
                 Name = "Widget",
                 UnitPrice = 9.99m,
@@ -94,7 +94,7 @@ namespace OrderService.Tests.Application.Validators
         public void CreateProductCommandValidator_WithZeroQuantity_ShouldPass()
         {
             var validator = new CreateProductCommandValidator();
-            var command = new CreateProductCommand(new CreateProductRequest
+            var command = new ProductCommands(new CreateProductRequest
             {
                 Name = "Widget",
                 UnitPrice = 9.99m,

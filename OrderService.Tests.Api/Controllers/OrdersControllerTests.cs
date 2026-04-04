@@ -113,4 +113,120 @@ public class OrdersControllerTests
         result.Result.Should().BeOfType<OkObjectResult>();
     }
     #endregion
+
+    #region Cancel
+    [Fact]
+    public async Task CancelOrder_ShouldReturnOk()
+    {
+        var mediator = new Mock<IMediator>();
+        var logger = new Mock<ILogger<OrdersController>>();
+        var orderId = Guid.NewGuid();
+
+        mediator
+            .Setup(x => x.Send(It.IsAny<CancelOrderCommand>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OrderDto(Order.Create(Guid.NewGuid(), "USD", [OrderItem.Create(Guid.NewGuid(), 10m, 1)])));
+
+        var controller = new OrdersController(mediator.Object, logger.Object);
+
+        var result = await controller.CancelOrder(orderId, CancellationToken.None);
+
+        result.Result.Should().BeOfType<OkObjectResult>();
+    }
+
+    [Fact]
+    public async Task CancelOrder_WhenMediatorThrowsArgumentException_ShouldReturnBadRequest()
+    {
+        var mediator = new Mock<IMediator>();
+        var logger = new Mock<ILogger<OrdersController>>();
+        var orderId = Guid.NewGuid();
+
+        mediator
+            .Setup(x => x.Send(It.IsAny<CancelOrderCommand>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new ArgumentException("Invalid cancel"));
+
+        var controller = new OrdersController(mediator.Object, logger.Object);
+
+        var result = await controller.CancelOrder(orderId, CancellationToken.None);
+
+        result.Result.Should().BeOfType<BadRequestObjectResult>()
+            .Which.Value.Should().Be("Invalid cancel");
+    }
+
+    [Fact]
+    public async Task CancelOrder_WhenMediatorThrows_ShouldReturnInternalServerError()
+    {
+        var mediator = new Mock<IMediator>();
+        var logger = new Mock<ILogger<OrdersController>>();
+        var orderId = Guid.NewGuid();
+
+        mediator
+            .Setup(x => x.Send(It.IsAny<CancelOrderCommand>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("boom"));
+
+        var controller = new OrdersController(mediator.Object, logger.Object);
+
+        var result = await controller.CancelOrder(orderId, CancellationToken.None);
+
+        result.Result.Should().BeOfType<ObjectResult>()
+            .Which.StatusCode.Should().Be(500);
+    }
+    #endregion
+
+    #region Confirm
+    [Fact]
+    public async Task ConfirmOrder_ShouldReturnOk()
+    {
+        var mediator = new Mock<IMediator>();
+        var logger = new Mock<ILogger<OrdersController>>();
+        var orderId = Guid.NewGuid();
+
+        mediator
+            .Setup(x => x.Send(It.IsAny<ConfirmOrderCommand>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OrderDto(Order.Create(Guid.NewGuid(), "USD", [OrderItem.Create(Guid.NewGuid(), 10m, 1)])));
+
+        var controller = new OrdersController(mediator.Object, logger.Object);
+
+        var result = await controller.ConfirmOrder(orderId, CancellationToken.None);
+
+        result.Result.Should().BeOfType<OkObjectResult>();
+    }
+
+    [Fact]
+    public async Task ConfirmOrder_WhenMediatorThrowsArgumentException_ShouldReturnBadRequest()
+    {
+        var mediator = new Mock<IMediator>();
+        var logger = new Mock<ILogger<OrdersController>>();
+        var orderId = Guid.NewGuid();
+
+        mediator
+            .Setup(x => x.Send(It.IsAny<ConfirmOrderCommand>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new ArgumentException("Invalid confirm"));
+
+        var controller = new OrdersController(mediator.Object, logger.Object);
+
+        var result = await controller.ConfirmOrder(orderId, CancellationToken.None);
+
+        result.Result.Should().BeOfType<BadRequestObjectResult>()
+            .Which.Value.Should().Be("Invalid confirm");
+    }
+
+    [Fact]
+    public async Task ConfirmOrder_WhenMediatorThrows_ShouldReturnInternalServerError()
+    {
+        var mediator = new Mock<IMediator>();
+        var logger = new Mock<ILogger<OrdersController>>();
+        var orderId = Guid.NewGuid();
+
+        mediator
+            .Setup(x => x.Send(It.IsAny<ConfirmOrderCommand>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("boom"));
+
+        var controller = new OrdersController(mediator.Object, logger.Object);
+
+        var result = await controller.ConfirmOrder(orderId, CancellationToken.None);
+
+        result.Result.Should().BeOfType<ObjectResult>()
+            .Which.StatusCode.Should().Be(500);
+    }
+    #endregion
 }
