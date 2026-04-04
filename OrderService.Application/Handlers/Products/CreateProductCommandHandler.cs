@@ -22,12 +22,14 @@ namespace OrderService.Application.Handlers.Products
 
             var request = command.Request;
 
-            if (await _unitOfWork.Products.ExistsByNameAsync(request.Name, cancellationToken))
+            var normalizedName = request.Name.Trim();
+
+            if (await _unitOfWork.Products.ExistsByNameAsync(normalizedName, cancellationToken))
             {
                 throw new ValidationException(DuplicateProductNameError);
             }
 
-            var product = Product.Create(request.Name, request.UnitPrice, request.AvailableQuantity);
+            var product = Product.Create(normalizedName, request.UnitPrice, request.AvailableQuantity);
             await _unitOfWork.Products.AddAsync(product, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
