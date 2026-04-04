@@ -7,7 +7,7 @@ using OrderService.Application.Handlers.Products;
 using OrderService.Application.Requests;
 using OrderService.Domain.Repositories;
 
-namespace OrderService.Tests.Application.Handlers
+namespace OrderService.Tests.Application.Handlers.Products
 {
     public class CreateProductCommandHandlerTests
     {
