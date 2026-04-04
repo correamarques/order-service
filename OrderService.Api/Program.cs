@@ -1,7 +1,13 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using OrderService.Application;
+using OrderService.Domain.Repositories;
 using OrderService.Infrastructure;
+using OrderService.Infrastructure.Auth;
 using OrderService.Infrastructure.Data;
+using OrderService.Infrastructure.Repositories;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +17,64 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddApplicationServices();
-builder.Services.AddInfrastructureServices(builder.Configuration);
+
+if (builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("orders-testing-db"));
+    builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+    var testingJwtSettings = builder.Configuration.GetSection("JwtSettings");
+    var testingJwtKey = testingJwtSettings["Key"] ?? "super-secret-key-nao-usar-em-producao";
+    var testingJwtIssuer = testingJwtSettings["Issuer"] ?? "OrderService";
+    var testingJwtAudience = testingJwtSettings["Audience"] ?? "OrderServiceUsers";
+    var testingJwtExpirationMinutes = int.Parse(testingJwtSettings["ExpirationMinutes"] ?? "60");
+
+    builder.Services.AddSingleton<IJwtTokenGenerator>(
+        new JwtTokenGenerator(testingJwtKey, testingJwtIssuer, testingJwtAudience, testingJwtExpirationMinutes)
+    );
+}
+else
+{
+    builder.Services.AddInfrastructureServices(builder.Configuration);
+}
+
+#region JWT Authentication
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+var jwtKey = jwtSettings["Key"] ?? throw new InvalidOperationException("JWT Key not configured");
+var tokenKey = Encoding.ASCII.GetBytes(jwtKey);
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(tokenKey),
+        ValidateIssuer = true,
+        ValidIssuer = jwtSettings["Issuer"] ?? "OrderService",
+        ValidateAudience = true,
+        ValidAudience = jwtSettings["Audience"] ?? "OrderServiceUsers",
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero
+    };
+});
+
+builder.Services.AddAuthorization();
+#endregion
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
 
 builder.Services.AddOpenApi();
 
@@ -34,8 +97,10 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseCors("AllowAll");
+app.UseRouting();
 app.UseHttpsRedirection();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OrderService.Api.Wrappers;
 using OrderService.Application.Commands;
@@ -8,6 +9,7 @@ using OrderService.Application.Requests;
 
 namespace OrderService.Api.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class ProductsController(IMediator mediator, ILogger<ProductsController> logger) : ControllerBase
