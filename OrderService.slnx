@@ -1,4 +1,8 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="docker-compose.yml" />
+    <File Path="Dockerfile" />
+  </Folder>
   <Project Path="OrderService.Api/OrderService.Api.csproj" />
   <Project Path="OrderService.Application/OrderService.Application.csproj" Id="8930f8e3-ce6f-4cea-a1ad-6a1204f4ac74" />
   <Project Path="OrderService.Domain/OrderService.Domain.csproj" Id="7acf3391-d4e7-4f48-92d2-e37c0c5b6b94" />
