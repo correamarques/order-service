@@ -2,6 +2,7 @@
 using MediatR;
 using OrderService.Application.Commands;
 using OrderService.Application.DTOs;
+using OrderService.Domain.Enums;
 using OrderService.Domain.Repositories;
 
 namespace OrderService.Application.Handlers.Orders;
@@ -22,9 +23,14 @@ public class ConfirmOrderCommandHandler(
         var order = await _unitOfWork.Orders.GetByIdAsync(request.OrderId, cancellationToken)
             ?? throw new ValidationException($"Order {request.OrderId} not found");
 
-        if (order.Status.ToString() == "Confirmed")
+        if (order.Status == OrderStatus.Confirmed)
         {
             return new OrderDto(order);
+        }
+
+        if (order.Status != OrderStatus.Placed)
+        {
+            throw new ValidationException($"Only orders in 'Placed' status can be confirmed. Current status: {order.Status}");
         }
 
         order.Confirm();

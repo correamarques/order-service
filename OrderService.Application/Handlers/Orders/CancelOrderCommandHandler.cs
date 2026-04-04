@@ -2,6 +2,7 @@
 using MediatR;
 using OrderService.Application.Commands;
 using OrderService.Application.DTOs;
+using OrderService.Domain.Enums;
 using OrderService.Domain.Repositories;
 
 namespace OrderService.Application.Handlers.Orders;
@@ -21,9 +22,15 @@ public class CancelOrderCommandHandler(
         var order = await _unitOfWork.Orders.GetByIdAsync(request.OrderId, cancellationToken)
             ?? throw new ValidationException($"Order {request.OrderId} not found");
 
-        if (order.Status.ToString() == "Canceled")
+        if (order.Status == OrderStatus.Canceled)
         {
             return new OrderDto(order);
+        }
+
+        OrderStatus[] allowedStatus = [OrderStatus.Placed, OrderStatus.Confirmed];
+        if (!allowedStatus.Contains(order.Status))
+        {
+            throw new ValidationException($"Only orders in 'Placed' or 'Confirmed' status can be canceled. Current status: {order.Status}");
         }
 
         var productIds = order.Items.Select(x => x.ProductId).ToList();

@@ -99,6 +99,11 @@ public class OrdersController(IMediator mediator, ILogger<OrdersController> logg
             var result = await _mediator.Send(command, cancellationToken);
             return Ok(result);
         }
+        catch (FluentValidation.ValidationException ex)
+        {
+            _logger.LogWarning(ex, "Validation error confirming order {OrderId}", id);
+            return BadRequest(new Response<object> { Errors = [ex.Message] });
+        }
         catch (ArgumentException ex)
         {
             _logger.LogWarning(ex, "Validation error confirming order {OrderId}", id);
