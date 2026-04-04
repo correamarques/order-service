@@ -132,6 +132,11 @@ public class OrdersController(IMediator mediator, ILogger<OrdersController> logg
             _logger.LogWarning(ex, "Validation error canceling order {OrderId}", id);
             return BadRequest(ex.Message);
         }
+        catch (FluentValidation.ValidationException ex)
+        {
+            _logger.LogWarning(ex, "Validation error confirming order {OrderId}", id);
+            return BadRequest(new Response<object> { Errors = [ex.Message] });
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error canceling order {OrderId}", id);
