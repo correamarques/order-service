@@ -6,7 +6,7 @@ using OrderService.Domain.Repositories;
 using OrderService.Tests.Application.Helpers;
 using OrderService.Tests.Domain.Builders;
 
-namespace OrderService.Tests.Application.Handlers
+namespace OrderService.Tests.Application.Handlers.Products
 {
     public class GetProductsQueryHandlerTests
     {
