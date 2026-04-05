@@ -40,9 +40,9 @@ public class ProductRepository(AppDbContext context) : IProductRepository
         return _context.Products.AsQueryable();
     }
 
-    public async Task UpdateAsync(Product product, CancellationToken cancellationToken = default)
+    public Task UpdateAsync(Product product, CancellationToken cancellationToken = default)
     {
         _context.Products.Update(product);
-        await _context.SaveChangesAsync(cancellationToken);
+        return Task.CompletedTask;
     }
 }
