@@ -33,6 +33,16 @@ public class ConfirmOrderCommandHandler(
             throw new ValidationException($"Only orders in 'Placed' status can be confirmed. Current status: {order.Status}");
         }
 
+        // Reserve stock for each product
+        var productIds = order.Items.Select(x => x.ProductId).ToList();
+        var products = await _unitOfWork.Products.GetByIdsAsync(productIds, cancellationToken);
+        foreach (var item in order.Items)
+        {
+            var product = products.First(p => p.Id == item.ProductId);
+            product.ReserveStock(item.Quantity);
+            await _unitOfWork.Products.UpdateAsync(product, cancellationToken);
+        }
+
         order.Confirm();
         await _unitOfWork.Orders.UpdateAsync(order, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);

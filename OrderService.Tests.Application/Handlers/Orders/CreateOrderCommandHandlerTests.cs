@@ -22,7 +22,7 @@ public class CreateOrderCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WhenProductsAvailable_ShouldCreateOrderAndReserveStock()
+    public async Task Handle_WhenProductsAvailable_ShouldCreateOrderWithoutReservingStock()
     {
         var productId = Guid.NewGuid();
         var command = new CreateOrderCommand(new CreateOrderRequest
@@ -53,7 +53,7 @@ public class CreateOrderCommandHandlerTests
         result.Total.Should().Be(40m);
         result.Status.Should().Be("Placed");
         orders.Verify(x => x.AddAsync(It.IsAny<Order>(), It.IsAny<CancellationToken>()), Times.Once);
-        products.Verify(x => x.UpdateAsync(It.IsAny<Product>(), It.IsAny<CancellationToken>()), Times.Once);
+        products.Verify(x => x.UpdateAsync(It.IsAny<Product>(), It.IsAny<CancellationToken>()), Times.Never);
         unitOfWork.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 

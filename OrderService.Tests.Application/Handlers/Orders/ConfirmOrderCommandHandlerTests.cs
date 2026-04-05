@@ -24,18 +24,31 @@ public class ConfirmOrderCommandHandlerTests
     [Fact]
     public async Task ConfirmOrder_WhenPlaced_ShouldUpdateAndPersist()
     {
-        var order = Order.Create(Guid.NewGuid(), "USD", [OrderItem.Create(Guid.NewGuid(), 15m, 1)]);
+        var productId = Guid.NewGuid();
+        var order = Order.Create(Guid.NewGuid(), "USD", [OrderItem.Create(productId, 15m, 1)]);
         var orderId = Guid.NewGuid();
+        var product = Product.Create("Test", 15m, 10);
+        typeof(Product).GetProperty(nameof(Product.Id))!.SetValue(product, productId);
 
         var unitOfWork = new Mock<IUnitOfWork>();
-        unitOfWork.Setup(x => x.Orders.GetByIdAsync(orderId, It.IsAny<CancellationToken>())).ReturnsAsync(order);
+        var orders = new Mock<IOrderRepository>();
+        var products = new Mock<IProductRepository>();
+
+        unitOfWork.SetupGet(x => x.Orders).Returns(orders.Object);
+        unitOfWork.SetupGet(x => x.Products).Returns(products.Object);
+        orders.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>())).ReturnsAsync(order);
+        products.Setup(x => x.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([product]);
         unitOfWork.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         var sut = new ConfirmOrderCommandHandler(unitOfWork.Object, BuildConfirmValidatorMock().Object);
         var result = await sut.Handle(new ConfirmOrderCommand(orderId), CancellationToken.None);
 
         result.Status.Should().Be("Confirmed");
-        unitOfWork.Verify(x => x.Orders.UpdateAsync(order, It.IsAny<CancellationToken>()), Times.Once);
+        orders.Verify(x => x.UpdateAsync(order, It.IsAny<CancellationToken>()), Times.Once);
+        products.Verify(x => x.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()), Times.Once);
+        products.Verify(x => x.UpdateAsync(product, It.IsAny<CancellationToken>()), Times.Once);
+        unitOfWork.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

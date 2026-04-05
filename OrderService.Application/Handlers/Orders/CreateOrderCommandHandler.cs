@@ -44,14 +44,6 @@ public class CreateOrderCommandHandler(
         var order = Order.Create(request.CustomerId, request.Currency, orderItems);
         await _unitOfWork.Orders.AddAsync(order, cancellationToken);
 
-        // Reserve stock for each product
-        foreach (var item in orderItems)
-        {
-            var product = products.First(p => p.Id == item.ProductId);
-            product.ReserveStock(item.Quantity);
-            await _unitOfWork.Products.UpdateAsync(product, cancellationToken);
-        }
-
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new OrderDto(order);
