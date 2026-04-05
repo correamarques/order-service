@@ -86,6 +86,11 @@ OrderService/
 ```bash
 docker-compose up --build
 ```
+If you dont have docker-compose, you can try to run with the docker command directly:
+
+```bash
+docker compose up --build
+```
 
 This will:
 - Start PostgreSQL database
