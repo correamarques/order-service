@@ -94,4 +94,31 @@ public class ConfirmOrderCommandHandlerTests
         unitOfWork.Verify(x => x.Orders.UpdateAsync(It.IsAny<Order>(), It.IsAny<CancellationToken>()), Times.Never);
         unitOfWork.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
+
+    [Fact]
+    public async Task ConfirmOrder_WhenStockIsInsufficient_ShouldThrowAndNotPersist()
+    {
+        var productId = Guid.NewGuid();
+        var order = Order.Create(Guid.NewGuid(), "USD", [OrderItem.Create(productId, 15m, 5)]);
+        var orderId = Guid.NewGuid();
+        var product = Product.Create("Test", 15m, 2);
+        typeof(Product).GetProperty(nameof(Product.Id))!.SetValue(product, productId);
+
+        var unitOfWork = new Mock<IUnitOfWork>();
+        var products = new Mock<IProductRepository>();
+
+        unitOfWork.Setup(x => x.Orders.GetByIdAsync(orderId, It.IsAny<CancellationToken>())).ReturnsAsync(order);
+        unitOfWork.SetupGet(x => x.Products).Returns(products.Object);
+        products.Setup(x => x.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([product]);
+
+        var sut = new ConfirmOrderCommandHandler(unitOfWork.Object, BuildConfirmValidatorMock().Object);
+
+        var act = () => sut.Handle(new ConfirmOrderCommand(orderId), CancellationToken.None);
+
+        await act.Should().ThrowAsync<OrderService.Domain.DomainException>();
+
+        unitOfWork.Verify(x => x.Orders.UpdateAsync(It.IsAny<Order>(), It.IsAny<CancellationToken>()), Times.Never);
+        unitOfWork.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
 }
