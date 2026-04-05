@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using FluentValidation;
 using OrderService.Application.DTOs;
 using OrderService.Application.Queries;
 using OrderService.Application.Wrappers;
@@ -14,6 +15,12 @@ public class GetOrdersQueryHandler(IUnitOfWork unitOfWork) : IRequestHandler<Get
 
     public async Task<PaginatedResult<OrderListItemDto>> Handle(GetOrdersQuery request, CancellationToken cancellationToken)
     {
+        if (request.PageNumber <= 0)
+            throw new ValidationException("pageNumber must be greater than 0");
+
+        if (request.PageSize <= 0)
+            throw new ValidationException("pageSize must be greater than 0");
+
         var filtered = _unitOfWork.Orders.GetQueryable();
 
         if (request.CustomerId.HasValue && request.CustomerId != Guid.Empty)
@@ -24,7 +31,7 @@ public class GetOrdersQueryHandler(IUnitOfWork unitOfWork) : IRequestHandler<Get
             if (Enum.TryParse<OrderStatus>(request.Status, true, out var parsedStatus))
                 filtered = filtered.Where(o => o.Status == parsedStatus);
             else
-                filtered = filtered.Where(_ => false);
+                throw new ValidationException($"Invalid status '{request.Status}'. Allowed values: Placed, Confirmed, Canceled");
         }
 
         if (request.FromDate.HasValue)
