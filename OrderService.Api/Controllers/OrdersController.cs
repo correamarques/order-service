@@ -14,6 +14,7 @@ namespace OrderService.Api.Controllers;
 [Route("[controller]")]
 public class OrdersController(IMediator mediator, ILogger<OrdersController> logger) : ControllerBase
 {
+    private const string InternalServerErrorMessage = "Internal server error";
     private readonly IMediator _mediator = mediator;
     private readonly ILogger<OrdersController> _logger = logger;
 
@@ -40,7 +41,7 @@ public class OrdersController(IMediator mediator, ILogger<OrdersController> logg
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating order");
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
     #endregion
@@ -63,7 +64,7 @@ public class OrdersController(IMediator mediator, ILogger<OrdersController> logg
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving order {OrderId}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -83,10 +84,15 @@ public class OrdersController(IMediator mediator, ILogger<OrdersController> logg
             var result = await _mediator.Send(query, cancellationToken);
             return Ok(result);
         }
+        catch (FluentValidation.ValidationException ex)
+        {
+            _logger.LogWarning(ex, "Validation error retrieving orders");
+            return BadRequest(new Response<object> { Success = false, Errors = [ex.Message] });
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving orders");
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
     #endregion
@@ -114,7 +120,7 @@ public class OrdersController(IMediator mediator, ILogger<OrdersController> logg
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error confirming order {OrderId}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -140,7 +146,7 @@ public class OrdersController(IMediator mediator, ILogger<OrdersController> logg
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error canceling order {OrderId}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
     #endregion
