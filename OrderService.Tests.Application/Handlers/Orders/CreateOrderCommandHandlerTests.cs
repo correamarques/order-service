@@ -79,4 +79,37 @@ public class CreateOrderCommandHandlerTests
 
         await act.Should().ThrowAsync<ValidationException>();
     }
+
+    [Fact]
+    public async Task Handle_WhenRequestedQuantityExceedsStock_ShouldThrowValidationException()
+    {
+        var productId = Guid.NewGuid();
+        var command = new CreateOrderCommand(new CreateOrderRequest
+        {
+            CustomerId = Guid.NewGuid(),
+            Currency = "USD",
+            Items = [new CreateOrderItemRequest { ProductId = productId, Quantity = 5 }]
+        });
+
+        var unitOfWork = new Mock<IUnitOfWork>();
+        var products = new Mock<IProductRepository>();
+        var validator = BuildValidatorMock();
+
+        var product = Product.Create("LowStock", 20m, 2);
+        typeof(Product).GetProperty(nameof(Product.Id))!.SetValue(product, productId);
+
+        unitOfWork.SetupGet(x => x.Products).Returns(products.Object);
+        products.Setup(x => x.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([product]);
+
+        var sut = new CreateOrderCommandHandler(unitOfWork.Object, validator.Object);
+
+        var act = () => sut.Handle(command, CancellationToken.None);
+
+        await act.Should().ThrowAsync<ValidationException>()
+            .WithMessage("*Insufficient stock*");
+
+        unitOfWork.Verify(x => x.Orders.AddAsync(It.IsAny<Order>(), It.IsAny<CancellationToken>()), Times.Never);
+        unitOfWork.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
 }
