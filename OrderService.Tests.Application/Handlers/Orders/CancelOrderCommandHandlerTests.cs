@@ -57,4 +57,26 @@ public class CancelOrderCommandHandlerTests
         unitOfWork.Verify(x => x.Orders.UpdateAsync(It.IsAny<Order>(), It.IsAny<CancellationToken>()), Times.Never);
         unitOfWork.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
+
+    [Fact]
+    public async Task CancelOrder_WhenCalledTwice_ShouldBeIdempotent()
+    {
+        var order = Order.Create(Guid.NewGuid(), "USD", [OrderItem.Create(Guid.NewGuid(), 15m, 1)]);
+        var orderId = Guid.NewGuid();
+
+        var unitOfWork = new Mock<IUnitOfWork>();
+        unitOfWork.Setup(x => x.Orders.GetByIdAsync(orderId, It.IsAny<CancellationToken>())).ReturnsAsync(order);
+        unitOfWork.Setup(x => x.Products.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>())).ReturnsAsync([]);
+        unitOfWork.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
+        var sut = new CancelOrderCommandHandler(unitOfWork.Object, BuildCancelValidatorMock().Object);
+
+        var first = await sut.Handle(new CancelOrderCommand(orderId), CancellationToken.None);
+        var second = await sut.Handle(new CancelOrderCommand(orderId), CancellationToken.None);
+
+        first.Status.Should().Be("Canceled");
+        second.Status.Should().Be("Canceled");
+        unitOfWork.Verify(x => x.Orders.UpdateAsync(order, It.IsAny<CancellationToken>()), Times.Once);
+        unitOfWork.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
 }
