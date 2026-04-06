@@ -12,7 +12,7 @@ A REST API for order management with inventory control, built with .NET 10+, ASP
 - **Async/Await**: End-to-end async operations
 - **Database Migrations**: Automatic schema management with EF Core
 - **Docker Support**: Full containerization with Docker Compose
-- **Comprehensive Tests**: xUnit test suite with business logic coverage
+- **Comprehensive Tests**: Unit tests and PostgreSQL-backed integration tests
 - **API Documentation**: Swagger/OpenAPI integration
 
 ## Tech Stack
@@ -23,7 +23,7 @@ A REST API for order management with inventory control, built with .NET 10+, ASP
 - **ORM**: Entity Framework Core 10.0+
 - **Database**: PostgreSQL 15
 - **Authentication**: JWT (JSON Web Tokens)
-- **Testing**: xUnit, Moq, FluentAssertions
+- **Testing**: xUnit, Moq, FluentAssertions, Testcontainers
 - **Container**: Docker, Docker Compose
 - **API Documentation**: Swagger/Swashbuckle
 
@@ -70,6 +70,10 @@ OrderService/
 │   └── Entities/
 ├── OrderService.Tests.Infrastructure/
 │   └── Repositories/
+├── OrderService.Tests.Integration/
+│   ├── Infrastructure/
+│   ├── Models/
+│   └── Scenarios/
 ├── Dockerfile
 └── docker-compose.yml
 ```
@@ -271,7 +275,11 @@ Response: 200 OK
 ## Running Tests
 
 ```bash
+# Run all tests
 dotnet test
+
+# Run only integration tests (requires Docker running locally)
+dotnet test OrderService.Tests.Integration/OrderService.Tests.Integration.csproj
 
 # Run tests with coverage on windows
 dotnet test /p:CollectCoverage=true
@@ -279,6 +287,20 @@ dotnet test /p:CollectCoverage=true
 # Run tests with coverage on linux/mac
 dotnet test --collect:"XPlat Code Coverage"
 ```
+
+## Integration Tests
+
+Integration tests are implemented in `OrderService.Tests.Integration` and validate real HTTP flows against a real PostgreSQL database provisioned by Testcontainers.
+
+Current covered scenarios:
+- Anonymous user can generate token on `/auth/token` and is denied (`401`) on protected endpoints.
+- Authenticated endpoints reject invalid bearer tokens.
+- Happy path flow: create product, verify listing, reject order with insufficient stock, create valid order, confirm order, cancel order, and validate stock/state transitions.
+
+Notes:
+- The integration fixture boots the API using `WebApplicationFactory<Program>`.
+- A PostgreSQL container (`postgres:15-alpine`) is started/stopped automatically during test execution.
+- Run with Docker daemon available locally.
 
 ## Database Schema
 

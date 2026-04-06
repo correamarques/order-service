@@ -171,7 +171,25 @@
 - Tests for command handlers
 - Tests for query handlers
 - Tests for validation
-- Integration tests with real database (future)
+
+### Integration Tests with Real PostgreSQL
+
+**Decision**: Implement API integration tests in a dedicated project (`OrderService.Tests.Integration`) using `WebApplicationFactory<Program>` and Testcontainers for PostgreSQL.
+
+**Rationale**:
+- **Separation of concerns**: Keeps fast unit/controller tests separate from end-to-end API tests.
+- **Higher fidelity**: Uses real HTTP pipeline + authentication + middleware + EF Core + PostgreSQL.
+- **Reliability**: Testcontainers provides isolated, reproducible database lifecycle per test run.
+- **Safety**: Integration tests validate behavior without changing production startup/dependency wiring.
+
+**Implementation**:
+- New test project: `OrderService.Tests.Integration`
+- Infrastructure fixture starts `postgres:15-alpine` container automatically.
+- API host is bootstrapped with `WebApplicationFactory<Program>` and environment-based configuration for test connection/JWT settings.
+- Scenarios covered:
+	- Anonymous user access control
+	- Invalid token rejection
+	- Happy path from product creation through order confirmation/cancellation with stock assertions
 
 ---
 
