@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using MediatR;
+using System.Text.Json;
 using OrderService.Application.Commands;
 using OrderService.Application.DTOs;
 using OrderService.Domain.Entities;
@@ -43,6 +44,17 @@ public class CreateOrderCommandHandler(
 
         var order = Order.Create(request.CustomerId, request.Currency, orderItems);
         await _unitOfWork.Orders.AddAsync(order, cancellationToken);
+        await _unitOfWork.OutboxEvents.AddAsync(
+            OutboxEvent.Create(
+                "order.created",
+                JsonSerializer.Serialize(new
+                {
+                    order.Id,
+                    order.CustomerId,
+                    order.Status,
+                    order.Total
+                })),
+            cancellationToken);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 

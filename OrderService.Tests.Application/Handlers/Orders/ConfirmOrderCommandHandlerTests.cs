@@ -32,8 +32,10 @@ public class ConfirmOrderCommandHandlerTests
 
         var unitOfWork = new Mock<IUnitOfWork>();
         var orders = new Mock<IOrderRepository>();
+        var outboxEvents = new Mock<IOutboxEventRepository>();
         var products = new Mock<IProductRepository>();
 
+        unitOfWork.SetupGet(x => x.OutboxEvents).Returns(outboxEvents.Object);
         unitOfWork.SetupGet(x => x.Orders).Returns(orders.Object);
         unitOfWork.SetupGet(x => x.Products).Returns(products.Object);
         orders.Setup(x => x.GetByIdAsync(orderId, It.IsAny<CancellationToken>())).ReturnsAsync(order);
@@ -59,6 +61,7 @@ public class ConfirmOrderCommandHandlerTests
         var orderId = Guid.NewGuid();
 
         var unitOfWork = new Mock<IUnitOfWork>();
+        unitOfWork.SetupGet(x => x.OutboxEvents).Returns(new Mock<IOutboxEventRepository>().Object);
         unitOfWork.Setup(x => x.Orders.GetByIdAsync(orderId, It.IsAny<CancellationToken>())).ReturnsAsync(order);
 
         var sut = new ConfirmOrderCommandHandler(unitOfWork.Object, BuildConfirmValidatorMock().Object);
@@ -82,6 +85,7 @@ public class ConfirmOrderCommandHandlerTests
         var orderId = Guid.NewGuid();
 
         var unitOfWork = new Mock<IUnitOfWork>();
+        unitOfWork.SetupGet(x => x.OutboxEvents).Returns(new Mock<IOutboxEventRepository>().Object);
         unitOfWork.Setup(x => x.Orders.GetByIdAsync(orderId, It.IsAny<CancellationToken>())).ReturnsAsync(order);
 
         var sut = new ConfirmOrderCommandHandler(unitOfWork.Object, BuildConfirmValidatorMock().Object);
@@ -105,6 +109,7 @@ public class ConfirmOrderCommandHandlerTests
         typeof(Product).GetProperty(nameof(Product.Id))!.SetValue(product, productId);
 
         var unitOfWork = new Mock<IUnitOfWork>();
+        unitOfWork.SetupGet(x => x.OutboxEvents).Returns(new Mock<IOutboxEventRepository>().Object);
         var products = new Mock<IProductRepository>();
 
         unitOfWork.Setup(x => x.Orders.GetByIdAsync(orderId, It.IsAny<CancellationToken>())).ReturnsAsync(order);

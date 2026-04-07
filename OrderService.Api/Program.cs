@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using OrderService.Api.Middleware;
 using OrderService.Application;
 using OrderService.Domain.Repositories;
 using OrderService.Infrastructure;
@@ -13,6 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -22,6 +24,7 @@ if (builder.Environment.IsEnvironment("Testing"))
 {
     builder.Services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("orders-testing-db"));
     builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+    builder.Services.AddOrderMessagingAndIdempotency(builder.Configuration, builder.Environment);
 
     var testingJwtSettings = builder.Configuration.GetSection("JwtSettings");
     var testingJwtKey = testingJwtSettings["Key"] ?? "super-secret-key-nao-usar-em-producao";
@@ -35,7 +38,7 @@ if (builder.Environment.IsEnvironment("Testing"))
 }
 else
 {
-    builder.Services.AddInfrastructureServices(builder.Configuration);
+    builder.Services.AddInfrastructureServices(builder.Configuration, builder.Environment);
 }
 
 #region JWT Authentication
@@ -102,6 +105,7 @@ app.UseRouting();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<IdempotencyMiddleware>();
 
 app.MapControllers();
 

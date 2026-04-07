@@ -21,6 +21,33 @@ services:
     networks:
       - orderservice_network
 
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: orderservice_rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - orderservice_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: orderservice_redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - orderservice_network
+
   api:
     build:
       context: .
@@ -30,14 +57,26 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=orderservicedb;Username=postgres;Password=postgres123"
+      Idempotency__ResponseTtlMinutes: "60"
+      Idempotency__LockTtlSeconds: "30"
       JwtSettings__Key: "super-secret-key-nao-usar-em-producao"
       JwtSettings__Issuer: "OrderService"
       JwtSettings__Audience: "OrderServiceUsers"
       JwtSettings__ExpirationMinutes: "60"
+      RabbitMq__HostName: "rabbitmq"
+      RabbitMq__Port: "5672"
+      RabbitMq__UserName: "guest"
+      RabbitMq__Password: "guest"
+      RabbitMq__QueueName: "order-service-events"
+      Redis__Configuration: "redis:6379"
     ports:
       - "8080:8080"
     depends_on:
       postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - orderservice_network

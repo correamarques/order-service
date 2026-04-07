@@ -55,8 +55,10 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
         using var scope = Factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
+        dbContext.IdempotencyRecords.RemoveRange(await dbContext.IdempotencyRecords.ToListAsync());
         dbContext.OrderItems.RemoveRange(await dbContext.OrderItems.ToListAsync());
         dbContext.Orders.RemoveRange(await dbContext.Orders.ToListAsync());
+        dbContext.OutboxEvents.RemoveRange(await dbContext.OutboxEvents.ToListAsync());
         dbContext.Products.RemoveRange(await dbContext.Products.ToListAsync());
 
         await dbContext.SaveChangesAsync();
