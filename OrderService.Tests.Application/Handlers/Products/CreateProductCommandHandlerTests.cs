@@ -24,9 +24,11 @@ namespace OrderService.Tests.Application.Handlers.Products
         public async Task Handle_WithValidDto_ShouldCreateProductAndReturnDto()
         {
             var unitOfWork = new Mock<IUnitOfWork>();
+            var outboxEvents = new Mock<IOutboxEventRepository>();
             var products = new Mock<IProductRepository>();
             var validator = BuildValidatorMock();
 
+            unitOfWork.SetupGet(x => x.OutboxEvents).Returns(outboxEvents.Object);
             unitOfWork.SetupGet(x => x.Products).Returns(products.Object);
             products
                 .Setup(x => x.ExistsByNameAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -59,9 +61,11 @@ namespace OrderService.Tests.Application.Handlers.Products
         public async Task Handle_WhenProductNameAlreadyExists_ShouldThrowValidationExceptionWithFriendlyMessage()
         {
             var unitOfWork = new Mock<IUnitOfWork>();
+            var outboxEvents = new Mock<IOutboxEventRepository>();
             var products = new Mock<IProductRepository>();
             var validator = BuildValidatorMock();
 
+            unitOfWork.SetupGet(x => x.OutboxEvents).Returns(outboxEvents.Object);
             unitOfWork.SetupGet(x => x.Products).Returns(products.Object);
             products.Setup(x => x.ExistsByNameAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
@@ -88,6 +92,7 @@ namespace OrderService.Tests.Application.Handlers.Products
         public async Task Handle_WhenValidationFails_ShouldThrowValidationException()
         {
             var unitOfWork = new Mock<IUnitOfWork>();
+            unitOfWork.SetupGet(x => x.OutboxEvents).Returns(new Mock<IOutboxEventRepository>().Object);
             var validator = new InlineValidator<ProductCommands>();
             validator.RuleFor(x => x.Request.Name).NotEmpty();
 

@@ -1,62 +1,94 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OrderService.Domain.Entities;
 
-namespace OrderService.Infrastructure.Data
+namespace OrderService.Infrastructure.Data;
+
+public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+    public DbSet<IdempotencyRecord> IdempotencyRecords { get; set; } = null!;
+    public DbSet<Order> Orders { get; set; } = null!;
+    public DbSet<OrderItem> OrderItems { get; set; } = null!;
+    public DbSet<OutboxEvent> OutboxEvents { get; set; } = null!;
+    public DbSet<Product> Products { get; set; } = null!;
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        public DbSet<Order> Orders { get; set; } = null!;
-        public DbSet<OrderItem> OrderItems { get; set; } = null!;
-        public DbSet<Product> Products { get; set; } = null!;
+        base.OnModelCreating(modelBuilder);
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        modelBuilder.Entity<IdempotencyRecord>(entity =>
         {
-            base.OnModelCreating(modelBuilder);
+            entity.HasKey(e => e.IdempotencyKey);
+            entity.Property(e => e.IdempotencyKey).HasMaxLength(64).IsRequired();
+            entity.Property(e => e.Method).HasMaxLength(16).IsRequired();
+            entity.Property(e => e.Endpoint).HasMaxLength(512).IsRequired();
+            entity.Property(e => e.RequestHash).HasMaxLength(128).IsRequired();
+            entity.Property(e => e.State).HasMaxLength(32).IsRequired();
+            entity.Property(e => e.ContentType).HasMaxLength(256);
+            entity.Property(e => e.CreatedAt).IsRequired();
+            entity.Property(e => e.ExpiresAt).IsRequired();
 
-            modelBuilder.Entity<Order>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).ValueGeneratedNever();
-                entity.Property(e => e.CustomerId).IsRequired();
-                entity.Property(e => e.Currency).HasMaxLength(3).IsRequired();
-                entity.Property(e => e.Status).IsRequired();
-                entity.Property(e => e.Total).HasPrecision(18, 2);
-                entity.Property(e => e.CreatedAt).IsRequired();
+            entity.HasIndex(e => e.State);
+            entity.HasIndex(e => e.ExpiresAt);
 
-                entity.HasMany(e => e.Items)
-                    .WithOne()
-                    .HasForeignKey("OrderId")
-                    .IsRequired();
+            entity.ToTable("IdempotencyRecords");
+        });
 
-                entity.ToTable("Orders");
-            });
+        modelBuilder.Entity<Order>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.CustomerId).IsRequired();
+            entity.Property(e => e.Currency).HasMaxLength(3).IsRequired();
+            entity.Property(e => e.Status).IsRequired();
+            entity.Property(e => e.Total).HasPrecision(18, 2);
+            entity.Property(e => e.CreatedAt).IsRequired();
 
-            modelBuilder.Entity<OrderItem>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).ValueGeneratedNever();
-                entity.Property(e => e.OrderId).IsRequired();
-                entity.Property(e => e.ProductId).IsRequired();
-                entity.Property(e => e.UnitPrice).HasPrecision(18, 2).IsRequired();
-                entity.Property(e => e.Quantity).IsRequired();
+            entity.HasMany(e => e.Items)
+                .WithOne()
+                .HasForeignKey("OrderId")
+                .IsRequired();
 
-                entity.ToTable("OrderItems");
-            });
+            entity.ToTable("Orders");
+        });
 
-            modelBuilder.Entity<Product>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).ValueGeneratedNever();
-                entity.Property(e => e.Name).HasMaxLength(255).IsRequired();
-                entity.Property(e => e.UnitPrice).HasPrecision(18, 2).IsRequired();
-                entity.Property(e => e.AvailableQuantity).IsRequired();
-                entity.Property(e => e.IsActive).IsRequired();
-                entity.Property(e => e.CreatedAt).IsRequired();
+        modelBuilder.Entity<OrderItem>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.OrderId).IsRequired();
+            entity.Property(e => e.ProductId).IsRequired();
+            entity.Property(e => e.UnitPrice).HasPrecision(18, 2).IsRequired();
+            entity.Property(e => e.Quantity).IsRequired();
 
-                entity.HasIndex(e => e.Name).IsUnique();
+            entity.ToTable("OrderItems");
+        });
 
-                entity.ToTable("Products");
-            });
-        }
+        modelBuilder.Entity<Product>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.Name).HasMaxLength(255).IsRequired();
+            entity.Property(e => e.UnitPrice).HasPrecision(18, 2).IsRequired();
+            entity.Property(e => e.AvailableQuantity).IsRequired();
+            entity.Property(e => e.IsActive).IsRequired();
+            entity.Property(e => e.CreatedAt).IsRequired();
+
+            entity.HasIndex(e => e.Name).IsUnique();
+
+            entity.ToTable("Products");
+        });
+
+        modelBuilder.Entity<OutboxEvent>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.EventType).HasMaxLength(255).IsRequired();
+            entity.Property(e => e.Payload).IsRequired();
+            entity.Property(e => e.CreatedAt).IsRequired();
+
+            entity.HasIndex(e => e.ProcessedAt);
+
+            entity.ToTable("OutboxEvents");
+        });
     }
 }

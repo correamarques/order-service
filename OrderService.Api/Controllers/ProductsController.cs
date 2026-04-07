@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OrderService.Api.Middleware;
 using OrderService.Api.Wrappers;
 using OrderService.Application.Commands;
 using OrderService.Application.DTOs;
@@ -19,6 +20,7 @@ public class ProductsController(IMediator mediator, ILogger<ProductsController> 
 
     #region Create
     [HttpPost]
+    [IdempotentRequest]
     public async Task<ActionResult<ProductDto>> Create(
         [FromBody] CreateProductRequest request,
         CancellationToken cancellationToken)

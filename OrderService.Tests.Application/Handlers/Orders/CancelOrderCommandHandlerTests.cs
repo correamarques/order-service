@@ -28,6 +28,7 @@ public class CancelOrderCommandHandlerTests
         var orderId = Guid.NewGuid();
 
         var unitOfWork = new Mock<IUnitOfWork>();
+        unitOfWork.SetupGet(x => x.OutboxEvents).Returns(new Mock<IOutboxEventRepository>().Object);
         unitOfWork.Setup(x => x.Orders.GetByIdAsync(orderId, It.IsAny<CancellationToken>())).ReturnsAsync(order);
         unitOfWork.Setup(x => x.Products.GetByIdsAsync(It.IsAny<List<Guid>>(), It.IsAny<CancellationToken>())).ReturnsAsync([]);
         unitOfWork.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
@@ -48,6 +49,7 @@ public class CancelOrderCommandHandlerTests
         order.Cancel();
 
         var unitOfWork = new Mock<IUnitOfWork>();
+        unitOfWork.SetupGet(x => x.OutboxEvents).Returns(new Mock<IOutboxEventRepository>().Object);
         unitOfWork.Setup(x => x.Orders.GetByIdAsync(orderId, It.IsAny<CancellationToken>())).ReturnsAsync(order);
 
         var sut = new CancelOrderCommandHandler(unitOfWork.Object, BuildCancelValidatorMock().Object);
@@ -65,6 +67,7 @@ public class CancelOrderCommandHandlerTests
         var orderId = Guid.NewGuid();
 
         var unitOfWork = new Mock<IUnitOfWork>();
+        unitOfWork.SetupGet(x => x.OutboxEvents).Returns(new Mock<IOutboxEventRepository>().Object);
         unitOfWork.Setup(x => x.Orders.GetByIdAsync(orderId, It.IsAny<CancellationToken>())).ReturnsAsync(order);
         unitOfWork.Setup(x => x.Products.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>())).ReturnsAsync([]);
         unitOfWork.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);

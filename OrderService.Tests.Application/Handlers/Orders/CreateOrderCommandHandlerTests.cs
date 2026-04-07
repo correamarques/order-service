@@ -34,9 +34,11 @@ public class CreateOrderCommandHandlerTests
 
         var unitOfWork = new Mock<IUnitOfWork>();
         var orders = new Mock<IOrderRepository>();
+        var outboxEvents = new Mock<IOutboxEventRepository>();
         var products = new Mock<IProductRepository>();
         var validator = BuildValidatorMock();
 
+        unitOfWork.SetupGet(x => x.OutboxEvents).Returns(outboxEvents.Object);
         var product = Product.Create("Test", 20m, 10);
         typeof(Product).GetProperty(nameof(Product.Id))!.SetValue(product, productId);
 
@@ -69,6 +71,7 @@ public class CreateOrderCommandHandlerTests
 
         var unitOfWork = new Mock<IUnitOfWork>();
         var validator = BuildValidatorMock();
+        unitOfWork.SetupGet(x => x.OutboxEvents).Returns(new Mock<IOutboxEventRepository>().Object);
         unitOfWork.SetupGet(x => x.Products).Returns(new Mock<IProductRepository>().Object);
         unitOfWork.Setup(x => x.Products.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<Product>());
@@ -92,9 +95,11 @@ public class CreateOrderCommandHandlerTests
         });
 
         var unitOfWork = new Mock<IUnitOfWork>();
+        var outboxEvents = new Mock<IOutboxEventRepository>();
         var products = new Mock<IProductRepository>();
         var validator = BuildValidatorMock();
 
+        unitOfWork.SetupGet(x => x.OutboxEvents).Returns(outboxEvents.Object);
         var product = Product.Create("LowStock", 20m, 2);
         typeof(Product).GetProperty(nameof(Product.Id))!.SetValue(product, productId);
 

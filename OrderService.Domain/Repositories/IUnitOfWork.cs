@@ -1,10 +1,11 @@
-﻿namespace OrderService.Domain.Repositories
-{
-    public interface IUnitOfWork : IAsyncDisposable
-    {
-        IOrderRepository Orders { get; }
-        IProductRepository Products { get; }
+﻿namespace OrderService.Domain.Repositories;
 
-        Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
-    }
+public interface IUnitOfWork : IAsyncDisposable
+{
+    IIdempotencyRecordRepository IdempotencyRecords { get; }
+    IOrderRepository Orders { get; }
+    IOutboxEventRepository OutboxEvents { get; }
+    IProductRepository Products { get; }
+
+    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OrderService.Api.Middleware;
 using OrderService.Api.Wrappers;
 using OrderService.Application.Commands;
 using OrderService.Application.DTOs;
@@ -20,6 +21,7 @@ public class OrdersController(IMediator mediator, ILogger<OrdersController> logg
 
     #region Create
     [HttpPost]
+    [IdempotentRequest]
     public async Task<ActionResult<OrderDto>> CreateOrder([FromBody] CreateOrderRequest request, CancellationToken cancellationToken)
     {
         try
@@ -99,6 +101,7 @@ public class OrdersController(IMediator mediator, ILogger<OrdersController> logg
 
     #region Actions
     [HttpPost("{id}/confirm")]
+    [IdempotentRequest]
     public async Task<ActionResult<OrderDto>> ConfirmOrder(Guid id, CancellationToken cancellationToken)
     {
         try
@@ -125,6 +128,7 @@ public class OrdersController(IMediator mediator, ILogger<OrdersController> logg
     }
 
     [HttpPost("{id}/cancel")]
+    [IdempotentRequest]
     public async Task<ActionResult<OrderDto>> CancelOrder(Guid id, CancellationToken cancellationToken)
     {
         try

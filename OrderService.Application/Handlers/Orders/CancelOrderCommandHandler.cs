@@ -1,7 +1,9 @@
 ﻿using FluentValidation;
 using MediatR;
+using System.Text.Json;
 using OrderService.Application.Commands;
 using OrderService.Application.DTOs;
+using OrderService.Domain.Entities;
 using OrderService.Domain.Enums;
 using OrderService.Domain.Repositories;
 
@@ -48,6 +50,17 @@ public class CancelOrderCommandHandler(
 
         order.Cancel();
         await _unitOfWork.Orders.UpdateAsync(order, cancellationToken);
+        await _unitOfWork.OutboxEvents.AddAsync(
+            OutboxEvent.Create(
+                "order.canceled",
+                JsonSerializer.Serialize(new
+                {
+                    order.Id,
+                    order.CustomerId,
+                    order.Status,
+                    CanceledAt = order.UpdatedAt
+                })),
+            cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new OrderDto(order);
